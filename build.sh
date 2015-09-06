@@ -17,6 +17,7 @@
 KERNEL_DIR=$PWD
 KERN_IMG=$KERNEL_DIR/arch/arm64/boot/Image
 DTBTOOL=$KERNEL_DIR/tools/dtbToolCM
+MODULES_DIR=$KERNEL_DIR/../RaZORBUILDOUTPUT/Common
 BUILD_START=$(date +"%s")
 blue='\033[0;34m'
 cyan='\033[0;36m'
@@ -24,14 +25,15 @@ yellow='\033[0;33m'
 red='\033[0;31m'
 nocol='\033[0m'
 # Modify the following variable if you want to build
-export CROSS_COMPILE="../../Toolchains/aarch64-linux-android-6.0/bin/aarch64-linux-android-"
+export CROSS_COMPILE="$MODULES_DIR/../../../Toolchains/aarch64-5.1/bin/aarch64-"
+export LD_LIBRARY_PATH="$MODULES_DIR/../../../Toolchains/sabermod-prebuilts/usr/lib/"
 export USE_CCACHE=1
 export ARCH=arm64
 export SUBARCH=arm64
 export KBUILD_BUILD_USER="Kiran.Anto"
 export KBUILD_BUILD_HOST="RaZor-Machine"
-STRIP="../../../Toolchains/aarch64-linux-android-6.0/bin/aarch64-linux-android-strip"
-MODULES_DIR=$KERNEL_DIR/../RaZORBUILDOUTPUT/Common
+STRIP="$MODULES_DIR/../../../Toolchains/aarch64-5.1/bin/aarch64-strip"
+
 
 compile_kernel ()
 {
@@ -80,8 +82,8 @@ echo "Copying modules"
 rm $MODULES_DIR/*
 find . -name '*.ko' -exec cp {} $MODULES_DIR/ \;
 cd $MODULES_DIR
-#echo "Stripping modules for size"
-#$STRIP --strip-unneeded *.ko
+echo "Stripping modules for size"
+$STRIP --strip-unneeded *.ko
 cd $KERNEL_DIR
 }
 
@@ -97,7 +99,7 @@ cp $KERNEL_DIR/arch/arm64/boot/Image  $MODULES_DIR/../PLUTONIUM/zImage
 cp $MODULES_DIR/* $MODULES_DIR/../PLUTONIUM/modules/
 cd $MODULES_DIR/../PLUTONIUM
 zipfile="RAZORTEST-ONEPLUS2-$(date +"%Y-%m-%d(%I.%M%p)").zip"
-zip -r $zipfile modules patch ramdisk dt.img zImage anykernel.sh tools META-INF -x *kernel/.gitignore*
+zip -r $zipfile etc modules patch ramdisk dt.img zImage anykernel.sh tools META-INF -x *kernel/.gitignore*
 dropbox_uploader -p upload $zipfile /test/
 dropbox_uploader share /$zipfile
 BUILD_END=$(date +"%s")
